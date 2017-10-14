@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html class="no-js" lang="en-gb">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Bind Zone Validator / Checker</title>
+    <meta name="author" content="Jamie Wood - https://jamiewood.io">
+    <meta name="description" content="Bind Zone Validator - Validate Bind zones. Check for errors.">
+    <meta name="keywords" content="BIND,BIND9,CHECK,VALIDATION,CHECKER,ERROR,ZONE,CONFIG">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        #content {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background-color: #DDD;
+        }
+
+        #sidebar {
+            width: 288px;
+            float: left;
+            background-color: #1C2023;
+            height: 100%;
+        }
+
+        #editor {
+            margin-left: 288px;
+            background-color: #1E2127;
+            height: 100%;
+        }
+
+        h1 {
+            color: #9da5b3 !important;
+            padding: 12px;
+            font-size: 2em !important;
+        }
+
+        p {
+            color: #9da5b3;
+            padding: 12px;
+            font-size: 1em !important;
+        }
+
+        .go {
+            background-color: #44c767;
+            -moz-border-radius: 26px;
+            -webkit-border-radius: 26px;
+            border-radius: 26px;
+            border: 1px solid #18ab29;
+            display: inline-block;
+            cursor: pointer;
+            color: #ffffff;
+            font-family: Arial;
+            font-size: 17px;
+            padding: 10px 100px;
+            text-decoration: none;
+            text-shadow: 0px 1px 0px #2f6627;
+            margin-left: 30px;
+        }
+
+        .go:hover {
+            background-color: #5cbf2a;
+        }
+
+        .go:active {
+            position: relative;
+            top: 1px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="jumbotron">
+        <div id="content">
+            <div id="sidebar">
+                <h1>Bind9 Zone File Validator</h1>
+                <p>Enter FQDN</p>
+                <textarea id="fqdn" placeholder="FQDN" style="margin-left:15px; width:90%;"></textarea>
+                <p>Paste your zone.conf file and hit "Go"</p>
+                <a href="#" class="go">Go</a>
+                <iframe style="margin:25px; bottom:0; width:240px;height:240px;" marginwidth="0" marginheight="0" scrolling="no"
+                    frameborder="0" src="//ws-eu.amazon-adsystem.com/widgets/q?ServiceVersion=20070822&OneJS=1&Operation=GetAdHtml&MarketPlace=GB&source=ac&ref=tf_til&ad_type=product_link&tracking_id=bind9-21&marketplace=amazon&region=GB&placement=B0026OR2QS&asins=B0026OR2QS&linkId=&show_border=true&link_opens_in_new_window=true"></iframe>
+            </div>
+            <div id="editor"></div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js"></script>
+    <script>
+        $(document).ready(function ($) {
+            var editor = ace.edit("editor");
+            editor.setTheme("ace/theme/monokai");
+            editor.setShowPrintMargin(false);
+            editor.getSession().setMode("ace/mode/assembly_x86");
+            $('a.go').click(function () {
+                var fqdn = $("textarea#fqdn").val();
+                var zoneFile = editor.getValue();
+                console.log(fqdn, zoneFile);
+                $.ajax({
+                    url: '${API_SERVER};',
+                    type: 'POST',
+                    data: {
+                        fqdn: fqdn,
+                        zoneFile: zoneFile
+                    },
+                    success: function (result) {
+                        alert(result);
+                    },
+                    error: function () {
+                        console.log('Failed to connect to API Server.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

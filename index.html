@@ -139,7 +139,7 @@
                 var zoneFile = editor.getValue();
                 console.log(fqdn, zoneFile);
                 $.ajax({
-                    url: '${API_SERVER}',
+                    url: '${API_SERVER}/validate',
                     type: 'POST',
                     data: {
                         fqdn: fqdn,

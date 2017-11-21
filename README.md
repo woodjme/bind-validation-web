@@ -1,7 +1,8 @@
 # bind-validation-web
 
-*Frontend to bind validator.*
+*Frontend for bind validator.*
 
+[Backend](https://github.com/woodjamie/bind-validation-api)
 ### Run in docker.
 
 * Clone this repo.

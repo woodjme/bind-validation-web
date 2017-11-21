@@ -110,8 +110,8 @@
                     success: function (result) {
                         alert(result);
                     },
-                    error: function () {
-                        console.log('Failed to connect to API server');
+                    error: function (err) {
+                        console.log('Failed to connect to API server' + err);
                     }
                 });
             });

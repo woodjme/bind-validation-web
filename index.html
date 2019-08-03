@@ -139,7 +139,7 @@
                 var zoneFile = editor.getValue();
                 console.log(fqdn, zoneFile);
                 $.ajax({
-                    url: '${API_SERVER}/validate',
+                    url: 'https://bind-api.jamiewood.io/validate',
                     type: 'POST',
                     data: {
                         fqdn: fqdn,

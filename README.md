@@ -1,5 +1,5 @@
 # bind-validation-web
 
-Bind validator is a simple webpage that allows you to send a fully qualified domain name and a bind config file to a API backend that validates the config by checking for errors and then returns the results.
+Bind Validator is a webpage that allows you to validate a bind configuration file against a FQDN.
 
 [https://bind.jamiewood.io](https://bind.jamiewood.io)

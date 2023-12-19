@@ -165,7 +165,7 @@
             <div id="sidebar">
                 <h1>Bind Zone File Validator</h1>
                 <p>Enter FQDN</p>
-                <textarea id="fqdn" placeholder="jamiewood.io" style="margin-left: 15px; width: 90%"></textarea>
+                <input id="fqdn" placeholder="jamiewood.io" style="margin-left: 15px; width: 80%"></input>
                 <p>Paste your zone.conf file and hit "Go"</p>
                 <a href="#" class="go">Go</a>
                 <br />
@@ -237,7 +237,7 @@
                     event.preventDefault(); // Prevent the default form submission behavior
 
                     const fqdn =
-                        document.querySelector("textarea#fqdn").value || "jamiewood.io";
+                        document.querySelector("input#fqdn").value || "jamiewood.io";
                     const zoneFile = editor.getValue();
 
                     const formData = new URLSearchParams();

@@ -66,7 +66,7 @@ www   IN  CNAME  example.com     ; WRONG!
         <h3>The Fix</h3>
         <pre><code>www   IN  CNAME  example.com.    ; Correct -- trailing dot makes it absolute</code></pre>
 
-        <p>This applies everywhere a fully qualified domain name appears: NS record targets, MX record targets, CNAME targets, SOA fields, and SRV record targets. If you mean a fully qualified name, always add the trailing dot.</p>
+        <p>This applies everywhere a fully qualified domain name appears: NS record targets, MX record targets, CNAME targets, SOA fields, and SRV record targets. If you mean a fully qualified name, always add the trailing dot. Note that <code>named-checkzone</code> may still parse the zone successfully in some cases, but the resulting name will often be wrong and can trigger follow-on errors such as missing address records.</p>
 
         <h2>2. CNAME Conflicts</h2>
         <p>A CNAME record cannot coexist with any other record type at the same name. This is defined in RFC 1034 and strictly enforced by BIND.</p>
@@ -92,7 +92,7 @@ www   IN  CNAME  example.com.</code></pre>
         <ul>
             <li><strong>Missing SOA entirely</strong> -- the zone won't load at all</li>
             <li><strong>Wrong field count</strong> -- the SOA has 7 required fields inside the parentheses</li>
-            <li><strong>Admin email uses @ instead of dot</strong> -- <code>admin@example.com</code> should be written as <code>admin.example.com.</code></li>
+            <li><strong>Admin mailbox written in an unusual form</strong> -- the conventional DNS representation of <code>admin@example.com</code> is <code>admin.example.com.</code>, though special characters in the local part may need escaping</li>
             <li><strong>Missing parentheses</strong> -- multi-line SOA records require parentheses</li>
         </ul>
 
@@ -154,12 +154,13 @@ www  60 IN  A  93.184.216.34      ; 60s (overridden)</code></pre>
 ; Correct
 @   IN  MX  10  mail.example.com.</code></pre>
 
-        <h3>TXT Records Missing Quotes</h3>
-        <pre><code>; Wrong -- no quotes
+        <h3>TXT Records Written Without Quotes</h3>
+        <pre><code>; Risky -- BIND treats this as multiple TXT character-strings
 @   IN  TXT  v=spf1 mx -all
 
-; Correct
+; Clear and predictable
 @   IN  TXT  "v=spf1 mx -all"</code></pre>
+        <p>This is not always a syntax error, but it's easy to get unintended TXT content if you omit quotes around values with spaces. For SPF, DKIM, and verification tokens, use quoted strings unless you deliberately want multiple TXT strings.</p>
 
         <h3>A Records with Invalid IPs</h3>
         <pre><code>; Wrong -- not a valid IPv4 address
@@ -171,7 +172,7 @@ www  IN  A  2606:2800::1</code></pre>
         <h2>8. Tab and Whitespace Issues</h2>
         <p>BIND zone files use whitespace (spaces or tabs) as field separators. Inconsistent whitespace usually isn't a problem, but there are edge cases:</p>
         <ul>
-            <li>Lines that start with whitespace are treated as continuation of the previous record's owner name</li>
+            <li>Lines that start with whitespace inherit the previous record's owner name, which can be surprising if you intended a new name</li>
             <li>Empty lines between records are fine, but an empty line inside a parenthesised block may cause issues with some BIND versions</li>
         </ul>
 
@@ -186,10 +187,11 @@ www  IN  CNAME  server1.example.com.
 www  IN  CNAME  server2.example.com.   ; ERROR</code></pre>
 
         <h2>10. Out-of-Zone Data</h2>
-        <p>Records in a zone file must belong to the zone. If you're editing the zone for <code>example.com</code>, you can't include records for <code>otherdomain.com</code>.</p>
+        <p>Records in a zone file should belong to the zone. If you're editing the zone for <code>example.com</code>, records for <code>otherdomain.com</code> are out of place and usually indicate a mistake.</p>
         <pre><code>; Zone: example.com
-; This record is out of zone -- BIND will reject it
+; This record is out of zone -- named-checkzone will usually ignore it
 otherdomain.com.  IN  A  1.2.3.4</code></pre>
+        <p>In practice, <code>named-checkzone</code> often loads the zone and logs a warning such as <code>ignoring out-of-zone data</code>. That still means the record is being discarded, so you should fix it rather than rely on the zone loading.</p>
 
         <h2>Quick Reference: Error Messages</h2>
         <table>
@@ -222,7 +224,7 @@ otherdomain.com.  IN  A  1.2.3.4</code></pre>
                 </tr>
                 <tr>
                     <td><code>not in zone</code></td>
-                    <td>Record's owner name is outside the current zone</td>
+                    <td>Record's owner name is outside the current zone; BIND often ignores it with a warning</td>
                 </tr>
                 <tr>
                     <td><code>has no NS records</code></td>

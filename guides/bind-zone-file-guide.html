@@ -133,7 +133,7 @@ www IN  A    93.184.216.34
                 </tr>
                 <tr>
                     <td>Minimum TTL</td>
-                    <td>TTL for negative responses (NXDOMAIN)</td>
+                    <td>Used for negative caching, together with the SOA record TTL</td>
                     <td><code>3600</code> (1 hour)</td>
                 </tr>
             </tbody>
@@ -142,7 +142,7 @@ www IN  A    93.184.216.34
         <p><strong>Important:</strong> The serial number is critical. Secondary nameservers compare the serial number to decide whether to transfer a new copy of the zone. A common convention is to use a date-based format: <code>YYYYMMDDnn</code> where <code>nn</code> is a two-digit revision number for that day.</p>
 
         <h2>NS Records</h2>
-        <p>NS (Name Server) records identify the authoritative nameservers for the zone. Every zone must have at least two NS records for redundancy.</p>
+        <p>NS (Name Server) records identify the authoritative nameservers for the zone. A valid zone must have at least one NS record, but in practice you should publish at least two for redundancy.</p>
         <pre><code>@   IN  NS   ns1.example.com.
 @   IN  NS   ns2.example.com.</code></pre>
         <p>The <code>@</code> symbol refers to the zone origin (the domain itself). Note the trailing dot on the nameserver hostnames -- this is essential (see <a href="/guides/common-bind-errors.html">common errors</a>).</p>
@@ -181,7 +181,7 @@ dkim._domainkey  IN  TXT  "v=DKIM1; k=rsa; p=MIGfMA0GCSqG..."
 
 ; Domain verification
 @   IN  TXT  "google-site-verification=abc123..."</code></pre>
-        <p>TXT record values must be enclosed in double quotes. If the value exceeds 255 characters, it must be split into multiple quoted strings.</p>
+        <p>TXT record data is made up of one or more character-strings. In BIND master files, quoted strings are the safest way to write TXT records because spaces otherwise split the value into multiple strings. If the value exceeds 255 characters, it must be split into multiple quoted strings.</p>
 
         <h2>SRV Records</h2>
         <p>SRV (Service) records define the location of specific services. They're used by protocols like SIP, XMPP, and LDAP.</p>
@@ -202,6 +202,7 @@ _xmpp._tcp.example.com. 3600  IN  SRV  10  0   5222  xmpp.example.com.</code></p
             <li><strong>Parentheses:</strong> Allow a record to span multiple lines (commonly used in SOA records)</li>
             <li><strong>$TTL directive:</strong> Sets the default TTL for all records that don't specify one</li>
             <li><strong>$ORIGIN directive:</strong> Changes the origin for subsequent records (rarely used manually)</li>
+            <li><strong>SOA mailbox format:</strong> The SOA "admin email" field is a DNS name, not a literal email address. <code>admin.example.com.</code> means <code>admin@example.com</code>, but dots in the local part must be escaped.</li>
         </ul>
 
         <h2>Complete Example Zone File</h2>
@@ -220,7 +221,7 @@ _xmpp._tcp.example.com. 3600  IN  SRV  10  0   5222  xmpp.example.com.</code></p
 @           IN  NS      ns1.example.com.
 @           IN  NS      ns2.example.com.
 
-; Nameserver A records (glue records)
+; Nameserver address records for in-zone nameservers
 ns1         IN  A       93.184.216.2
 ns2         IN  A       93.184.216.3
 

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About - checkzone.dev | Free BIND Zone File Validator</title>
+    <meta name="description" content="Learn about checkzone.dev, a free open-source tool for validating BIND DNS zone files online using named-checkzone." />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="About - checkzone.dev" />
+    <meta property="og:description" content="Learn about checkzone.dev, a free open-source tool for validating BIND DNS zone files online." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://checkzone.dev/about.html" />
+
+    <link rel="canonical" href="https://checkzone.dev/about.html" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='12' width='100' height='100' fill='%2364ceaa'/><text x='50' y='72' font-size='60' text-anchor='middle' fill='%231c2023' font-family='sans-serif' font-weight='bold'>Z</text></svg>" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QL2F6CRE1Q');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5332513065156036" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="site-nav">
+        <a href="/" class="site-nav__brand">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect rx="12" width="100" height="100" fill="currentColor"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#1c2023" font-family="sans-serif" font-weight="bold">Z</text></svg>
+            checkzone.dev
+        </a>
+        <button class="site-nav__toggle" aria-label="Toggle navigation">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+        </button>
+        <ul class="site-nav__links">
+            <li><a href="/">Validator</a></li>
+            <li><a href="/guides/bind-zone-file-guide.html">Zone File Guide</a></li>
+            <li><a href="/guides/common-bind-errors.html">Common Errors</a></li>
+            <li><a href="/about.html" class="active">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main class="page-content">
+        <h1>About checkzone.dev</h1>
+        <p class="page-subtitle">A free, open-source BIND zone file validator</p>
+
+        <h2>What Is This Tool?</h2>
+        <p>checkzone.dev is a free online tool that validates BIND DNS zone files. If you manage DNS infrastructure using BIND9 (the most widely deployed DNS server software on the internet), you know that a single syntax error in a zone file can take down DNS resolution for an entire domain. This tool lets you catch those errors before they cause problems.</p>
+
+        <h2>How It Works</h2>
+        <p>The process is straightforward:</p>
+        <ol>
+            <li><strong>Paste your zone file</strong> into the code editor on the <a href="/">validator page</a></li>
+            <li><strong>Enter the FQDN</strong> (Fully Qualified Domain Name) for the zone, such as <code>example.com</code></li>
+            <li><strong>Click "Validate"</strong> to submit your zone file for checking</li>
+        </ol>
+        <p>Behind the scenes, your zone file is sent to a backend API that runs <code>named-checkzone</code> -- the same validation utility included with BIND9 itself. This means you get the exact same validation that your production DNS server would perform, but without needing to SSH into a server or install BIND locally.</p>
+
+        <h3>What Gets Checked</h3>
+        <p>The <code>named-checkzone</code> utility validates:</p>
+        <ul>
+            <li>Zone file syntax and formatting</li>
+            <li>SOA (Start of Authority) record correctness</li>
+            <li>NS (Name Server) record presence and validity</li>
+            <li>Record type syntax (A, AAAA, CNAME, MX, TXT, SRV, PTR, etc.)</li>
+            <li>CNAME conflicts (CNAME records cannot coexist with other record types at the same name)</li>
+            <li>Missing trailing dots on fully qualified domain names</li>
+            <li>TTL (Time To Live) values</li>
+            <li>Serial number format in SOA records</li>
+        </ul>
+
+        <h2>Privacy and Security</h2>
+        <p>Your zone file content is sent to our validation API solely for the purpose of running the check. We do <strong>not store, log, or retain</strong> any zone file data after the validation is complete. See our <a href="/privacy.html">privacy policy</a> for full details.</p>
+        <p>That said, if your zone files contain sensitive internal infrastructure details, consider running <code>named-checkzone</code> locally instead. The tool is available in the <code>bind9-utils</code> package on most Linux distributions.</p>
+
+        <h2>Who Built This</h2>
+        <p>checkzone.dev was built by <a href="https://jamiewood.io" target="_blank" rel="noopener">Jamie Wood</a>, a software engineer who got tired of deploying zone file changes only to find out there was a typo. Rather than keep running <code>named-checkzone</code> manually on a local machine, this tool makes it accessible to anyone with a browser.</p>
+
+        <div class="cta-box">
+            <p><strong>Ready to validate a zone file?</strong></p>
+            <a href="/" class="btn">Open the Validator</a>
+        </div>
+
+        <!-- Ad Unit -->
+        <div class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-5332513065156036"
+                 data-ad-slot="auto"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="site-footer__inner">
+            <span>&copy; 2024&ndash;2026 checkzone.dev</span>
+            <ul class="site-footer__links">
+                <li><a href="/privacy.html">Privacy Policy</a></li>
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+                <li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.site-nav__toggle').addEventListener('click', function () {
+            document.querySelector('.site-nav__links').classList.toggle('open');
+        });
+    </script>
+</body>
+
+</html>

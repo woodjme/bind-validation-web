@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Common BIND Zone File Errors and How to Fix Them | checkzone.dev</title>
+    <meta name="description" content="Troubleshoot the most common BIND zone file errors including missing trailing dots, CNAME conflicts, SOA serial issues, and more. Each error explained with fixes." />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Common BIND Zone File Errors and How to Fix Them" />
+    <meta property="og:description" content="Troubleshoot common BIND zone file errors. Each error explained with examples and fixes." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://checkzone.dev/guides/common-bind-errors.html" />
+
+    <link rel="canonical" href="https://checkzone.dev/guides/common-bind-errors.html" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='12' width='100' height='100' fill='%2364ceaa'/><text x='50' y='72' font-size='60' text-anchor='middle' fill='%231c2023' font-family='sans-serif' font-weight='bold'>Z</text></svg>" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QL2F6CRE1Q');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5332513065156036" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="site-nav">
+        <a href="/" class="site-nav__brand">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect rx="12" width="100" height="100" fill="currentColor"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#1c2023" font-family="sans-serif" font-weight="bold">Z</text></svg>
+            checkzone.dev
+        </a>
+        <button class="site-nav__toggle" aria-label="Toggle navigation">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+        </button>
+        <ul class="site-nav__links">
+            <li><a href="/">Validator</a></li>
+            <li><a href="/guides/bind-zone-file-guide.html">Zone File Guide</a></li>
+            <li><a href="/guides/common-bind-errors.html" class="active">Common Errors</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main class="page-content">
+        <h1>Common BIND Zone File Errors</h1>
+        <p class="page-subtitle">How to identify and fix the most frequent zone file mistakes</p>
+
+        <p>When <code>named-checkzone</code> reports an error in your zone file, the messages can be cryptic. This guide covers the most common errors, explains what causes them, and shows you how to fix them.</p>
+
+        <h2>1. Missing Trailing Dot on FQDNs</h2>
+        <p><strong>This is by far the most common mistake.</strong> In BIND zone files, any domain name that doesn't end with a dot is treated as <em>relative</em> to the zone origin. BIND automatically appends the zone name to it.</p>
+
+        <h3>The Problem</h3>
+        <pre><code>; Zone: example.com
+www   IN  CNAME  example.com     ; WRONG!
+; BIND interprets this as: www.example.com. CNAME example.com.example.com.</code></pre>
+
+        <h3>The Fix</h3>
+        <pre><code>www   IN  CNAME  example.com.    ; Correct -- trailing dot makes it absolute</code></pre>
+
+        <p>This applies everywhere a fully qualified domain name appears: NS record targets, MX record targets, CNAME targets, SOA fields, and SRV record targets. If you mean a fully qualified name, always add the trailing dot.</p>
+
+        <h2>2. CNAME Conflicts</h2>
+        <p>A CNAME record cannot coexist with any other record type at the same name. This is defined in RFC 1034 and strictly enforced by BIND.</p>
+
+        <h3>The Problem</h3>
+        <pre><code>www   IN  A      93.184.216.34
+www   IN  CNAME  example.com.    ; ERROR: conflicts with the A record above</code></pre>
+
+        <h3>The Fix</h3>
+        <p>Choose one approach -- either use an A record or a CNAME, not both:</p>
+        <pre><code>; Option A: Use just the A record
+www   IN  A  93.184.216.34
+
+; Option B: Use just the CNAME
+www   IN  CNAME  example.com.</code></pre>
+
+        <p>Similarly, you cannot place a CNAME at the zone apex (<code>@</code>) because the apex must have SOA and NS records.</p>
+
+        <h2>3. Missing or Invalid SOA Record</h2>
+        <p>Every zone file must have exactly one SOA record, and it must be the first record in the zone (after any directives like <code>$TTL</code>).</p>
+
+        <h3>Common SOA Problems</h3>
+        <ul>
+            <li><strong>Missing SOA entirely</strong> -- the zone won't load at all</li>
+            <li><strong>Wrong field count</strong> -- the SOA has 7 required fields inside the parentheses</li>
+            <li><strong>Admin email uses @ instead of dot</strong> -- <code>admin@example.com</code> should be written as <code>admin.example.com.</code></li>
+            <li><strong>Missing parentheses</strong> -- multi-line SOA records require parentheses</li>
+        </ul>
+
+        <h3>Correct SOA Format</h3>
+        <pre><code>@   IN  SOA  ns1.example.com. admin.example.com. (
+                2024010101   ; Serial
+                7200         ; Refresh
+                3600         ; Retry
+                1209600      ; Expire
+                3600         ; Minimum TTL
+)</code></pre>
+
+        <h2>4. SOA Serial Number Not Incremented</h2>
+        <p>While <code>named-checkzone</code> won't always flag this as an error, failing to increment the serial number is a common operational mistake. Secondary nameservers check the serial to decide whether to transfer a new copy of the zone. If you don't increment it, your changes won't propagate.</p>
+
+        <h3>Best Practice</h3>
+        <p>Use the <code>YYYYMMDDnn</code> format:</p>
+        <pre><code>; Today's first change
+2024061401
+
+; Today's second change
+2024061402
+
+; Tomorrow's first change
+2024061501</code></pre>
+        <p>The serial number must always increase. If you use Unix timestamps or arbitrary numbers, just make sure each new value is larger than the previous one.</p>
+
+        <h2>5. Missing NS Records</h2>
+        <p>Every zone must have at least one NS record at the zone apex. In practice, you should have at least two for redundancy. Without NS records, the zone is technically invalid.</p>
+
+        <h3>The Fix</h3>
+        <pre><code>@   IN  NS   ns1.example.com.
+@   IN  NS   ns2.example.com.</code></pre>
+
+        <h2>6. TTL Issues</h2>
+        <p>If no <code>$TTL</code> directive is present and records don't specify their own TTL, BIND may reject the zone or use unexpected defaults.</p>
+
+        <h3>The Problem</h3>
+        <pre><code>; No $TTL directive, no per-record TTL
+@   IN  A  93.184.216.34          ; What TTL does this get?</code></pre>
+
+        <h3>The Fix</h3>
+        <p>Always include a <code>$TTL</code> directive at the top of your zone file:</p>
+        <pre><code>$TTL 3600    ; 1 hour default TTL
+
+@   IN  A  93.184.216.34          ; Gets 3600s TTL from $TTL directive</code></pre>
+        <p>You can override the default for individual records by specifying a TTL value:</p>
+        <pre><code>$TTL 3600
+@       IN  A  93.184.216.34      ; 3600s (default)
+www  60 IN  A  93.184.216.34      ; 60s (overridden)</code></pre>
+
+        <h2>7. Syntax Errors in Record Values</h2>
+        <p>Each record type has a specific format. Common mistakes include:</p>
+
+        <h3>MX Records Missing Priority</h3>
+        <pre><code>; Wrong -- missing priority number
+@   IN  MX  mail.example.com.
+
+; Correct
+@   IN  MX  10  mail.example.com.</code></pre>
+
+        <h3>TXT Records Missing Quotes</h3>
+        <pre><code>; Wrong -- no quotes
+@   IN  TXT  v=spf1 mx -all
+
+; Correct
+@   IN  TXT  "v=spf1 mx -all"</code></pre>
+
+        <h3>A Records with Invalid IPs</h3>
+        <pre><code>; Wrong -- not a valid IPv4 address
+www  IN  A  999.999.999.999
+
+; Wrong -- IPv6 in an A record (use AAAA)
+www  IN  A  2606:2800::1</code></pre>
+
+        <h2>8. Tab and Whitespace Issues</h2>
+        <p>BIND zone files use whitespace (spaces or tabs) as field separators. Inconsistent whitespace usually isn't a problem, but there are edge cases:</p>
+        <ul>
+            <li>Lines that start with whitespace are treated as continuation of the previous record's owner name</li>
+            <li>Empty lines between records are fine, but an empty line inside a parenthesised block may cause issues with some BIND versions</li>
+        </ul>
+
+        <h2>9. Duplicate Records</h2>
+        <p>While not always an error, duplicate identical records are wasteful and can indicate a mistake. Duplicate records with <em>different</em> values at the same name are valid for some types (A, MX, NS, TXT) but invalid for CNAME and SOA.</p>
+        <pre><code>; Valid: multiple A records (round-robin DNS)
+www  IN  A  93.184.216.34
+www  IN  A  93.184.216.35
+
+; Invalid: multiple CNAMEs for the same name
+www  IN  CNAME  server1.example.com.
+www  IN  CNAME  server2.example.com.   ; ERROR</code></pre>
+
+        <h2>10. Out-of-Zone Data</h2>
+        <p>Records in a zone file must belong to the zone. If you're editing the zone for <code>example.com</code>, you can't include records for <code>otherdomain.com</code>.</p>
+        <pre><code>; Zone: example.com
+; This record is out of zone -- BIND will reject it
+otherdomain.com.  IN  A  1.2.3.4</code></pre>
+
+        <h2>Quick Reference: Error Messages</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Error Message</th>
+                    <th>Likely Cause</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>no SOA record</code></td>
+                    <td>SOA record is missing or has syntax errors</td>
+                </tr>
+                <tr>
+                    <td><code>CNAME and other data</code></td>
+                    <td>CNAME record conflicts with another record at the same name</td>
+                </tr>
+                <tr>
+                    <td><code>not at top of zone</code></td>
+                    <td>SOA record is not the first record in the zone</td>
+                </tr>
+                <tr>
+                    <td><code>bad dotted quad</code></td>
+                    <td>Invalid IPv4 address in an A record</td>
+                </tr>
+                <tr>
+                    <td><code>unknown RR type</code></td>
+                    <td>Typo in the record type (e.g., <code>AAA</code> instead of <code>AAAA</code>)</td>
+                </tr>
+                <tr>
+                    <td><code>not in zone</code></td>
+                    <td>Record's owner name is outside the current zone</td>
+                </tr>
+                <tr>
+                    <td><code>has no NS records</code></td>
+                    <td>Zone is missing NS records at the apex</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="cta-box">
+            <p><strong>Having trouble with a zone file?</strong> Paste it into the validator to see exactly what's wrong.</p>
+            <a href="/" class="btn">Open the Validator</a>
+        </div>
+
+        <!-- Ad Unit -->
+        <div class="ad-container">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-5332513065156036"
+                 data-ad-slot="auto"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="site-footer__inner">
+            <span>&copy; 2024&ndash;2026 checkzone.dev</span>
+            <ul class="site-footer__links">
+                <li><a href="/privacy.html">Privacy Policy</a></li>
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+                <li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.site-nav__toggle').addEventListener('click', function () {
+            document.querySelector('.site-nav__links').classList.toggle('open');
+        });
+    </script>
+</body>
+
+</html>

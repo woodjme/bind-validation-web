@@ -61,7 +61,7 @@
     <div class="tool-layout">
         <!-- Mobile Controls (visible only on small screens) -->
         <div class="tool-mobile-controls">
-            <input id="fqdn-mobile" placeholder="Enter FQDN (e.g. jamiewood.io)" aria-label="Fully Qualified Domain Name" />
+            <input id="fqdn-mobile" placeholder="Enter FQDN (e.g. example.test)" aria-label="Fully Qualified Domain Name" />
             <button class="btn-go" id="validate-btn-mobile">Validate zone</button>
         </div>
 
@@ -70,7 +70,7 @@
             <div class="tool-sidebar" id="sidebar">
                 <h1>BIND Zone Validator</h1>
                 <p>Domain name</p>
-                <input id="fqdn" placeholder="jamiewood.io" aria-label="Fully Qualified Domain Name" />
+                <input id="fqdn" placeholder="example.test" aria-label="Fully Qualified Domain Name" />
                 <p>Paste your zone file, then click Validate.</p>
                 <div class="tool-sidebar__actions">
                     <button class="btn-go" id="validate-btn">Validate zone</button>
@@ -142,7 +142,7 @@
             editor.setShowPrintMargin(false);
             editor.getSession().setMode("ace/mode/assembly_x86");
             editor.setValue(
-                "jamiewood.io.\t3600\tIN\tSOA\tjamiewood.io. root.jamiewood.io. 2034387333 7200 3600 86400 3600\n\n;; NS Records\n@\tNS\tmax.ns.cloudflare.com.\n\n;; CNAME Records\nbind.jamiewood.io.\t1\tIN\tCNAME\twoodjme.github.io.\n"
+                "$TTL 3600\n@\tIN\tSOA\tns1.example.test. hostmaster.example.test. (\n\t\t2026050801\t; serial\n\t\t7200\t\t; refresh\n\t\t3600\t\t; retry\n\t\t1209600\t; expire\n\t\t3600\t\t; negative cache ttl\n)\n\n;; Nameservers\n@\tIN\tNS\tns1.example.test.\n@\tIN\tNS\tns2.example.test.\nns1\tIN\tA\t192.0.2.10\nns2\tIN\tA\t192.0.2.11\n\n;; Web\n@\tIN\tA\t192.0.2.20\n@\tIN\tAAAA\t2001:db8::20\nwww\tIN\tCNAME\t@\napi\tIN\tA\t192.0.2.21\n\n;; Mail\n@\tIN\tMX\t10 mail1.example.test.\n@\tIN\tMX\t20 mail2.example.test.\nmail1\tIN\tA\t192.0.2.30\nmail2\tIN\tA\t192.0.2.31\n\n;; Text and policy\n@\tIN\tTXT\t\"v=spf1 mx -all\"\n_dmarc\tIN\tTXT\t\"v=DMARC1; p=none; rua=mailto:dmarc@example.test\"\n@\tIN\tCAA\t0 issue \"letsencrypt.org\"\n\n;; Service discovery\n_sip._tcp\tIN\tSRV\t10 60 5060 sip.example.test.\nsip\tIN\tA\t192.0.2.40\n"
             );
 
             // Sidebar collapse toggle (desktop)

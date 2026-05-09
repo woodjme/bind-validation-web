@@ -162,6 +162,7 @@
             var resultBar = document.getElementById("result-bar");
             var resultLabel = document.getElementById("result-label");
             var resultDetails = document.getElementById("result-details");
+            var apiUrl = new URLSearchParams(window.location.search).get("api") || "https://bind-api.jamiewood.io/validate";
 
             function normalizeResult(result) {
                 var normalized = result.trim();
@@ -183,6 +184,26 @@
                 resultDetails.textContent = details || "";
             }
 
+            function parseApiPayload(rawText) {
+                try {
+                    var payload = JSON.parse(rawText);
+
+                    if (payload && typeof payload === "object" && typeof payload.ok === "boolean") {
+                        return payload;
+                    }
+                } catch (error) {
+                    // Fall back to the legacy text response while production is migrated.
+                }
+
+                var result = normalizeResult(rawText);
+                var isOk = /\bok\b/i.test(result) || /loaded serial/i.test(result);
+                return {
+                    ok: isOk,
+                    message: isOk ? "Zone validated successfully" : "Validation failed",
+                    output: result,
+                };
+            }
+
             async function doValidate() {
                 var fqdn = fqdnDesktop.value || fqdnMobile.value;
                 var zoneFile = editor.getValue();
@@ -199,22 +220,19 @@
                 formData.append("zoneFile", zoneFile);
 
                 try {
-                    var response = await fetch("https://bind-api.jamiewood.io/validate", {
+                    var response = await fetch(apiUrl, {
                         method: "POST",
                         headers: { "Content-Type": "application/x-www-form-urlencoded" },
                         body: formData.toString(),
                     });
 
-                    if (!response.ok) {
-                        throw new Error("Failed to connect to API server (HTTP " + response.status + ")");
-                    }
+                    var payload = parseApiPayload(await response.text());
+                    var message = payload.message || (response.ok ? "Zone validated successfully" : "Validation failed");
 
-                    var result = normalizeResult(await response.text());
-                    var isOk = /\bok\b/i.test(result) || /loaded serial/i.test(result);
                     showResult(
-                        isOk ? "success" : "error",
-                        isOk ? "Zone validated successfully" : "Validation failed",
-                        result
+                        payload.ok ? "success" : "error",
+                        response.ok ? message : message + " (HTTP " + response.status + ")",
+                        payload.output || ""
                     );
                 } catch (error) {
                     showResult("error", "Validation failed", error.message);

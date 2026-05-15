@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DNS Record Types in BIND Zone Files | checkzone.dev</title>
+    <meta name="description" content="A practical reference for common DNS record types in BIND zone files, including SOA, NS, A, AAAA, CNAME, MX, TXT, SRV, CAA, PTR, and DS." />
+
+    <meta property="og:title" content="DNS Record Types in BIND Zone Files" />
+    <meta property="og:description" content="Common DNS record types explained with BIND zone file examples." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://checkzone.dev/guides/dns-record-types.html" />
+
+    <link rel="canonical" href="https://checkzone.dev/guides/dns-record-types.html" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='12' width='100' height='100' fill='%2364ceaa'/><text x='50' y='72' font-size='60' text-anchor='middle' fill='%231c2023' font-family='sans-serif' font-weight='bold'>Z</text></svg>" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
+    <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QL2F6CRE1Q');</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5332513065156036" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class="site-nav"><a href="/" class="site-nav__brand"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect rx="12" width="100" height="100" fill="currentColor"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#1c2023" font-family="sans-serif" font-weight="bold">Z</text></svg>checkzone.dev</a><button class="site-nav__toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button><ul class="site-nav__links"><li><a href="/">Validator</a></li><li><a href="/guides/" class="active">Guides</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li></ul></nav>
+
+    <main class="page-content">
+        <h1>DNS Record Types in BIND Zone Files</h1>
+        <p class="page-subtitle">What common records do and how to write them in master file syntax</p>
+
+        <p>BIND zone files store DNS resource records in a compact text format. The owner name comes first, followed by optional TTL, class, record type, and record-specific data. Most internet zones use a small set of record types repeatedly.</p>
+
+        <h2>Common Record Types</h2>
+        <table>
+            <thead><tr><th>Type</th><th>Purpose</th><th>Example</th></tr></thead>
+            <tbody>
+                <tr><td><code>SOA</code></td><td>Defines zone authority, serial, and secondary refresh timing.</td><td><code>@ IN SOA ns1.example.test. hostmaster.example.test. (...)</code></td></tr>
+                <tr><td><code>NS</code></td><td>Lists authoritative nameservers for the zone.</td><td><code>@ IN NS ns1.example.test.</code></td></tr>
+                <tr><td><code>A</code></td><td>Maps a name to an IPv4 address.</td><td><code>www IN A 192.0.2.20</code></td></tr>
+                <tr><td><code>AAAA</code></td><td>Maps a name to an IPv6 address.</td><td><code>www IN AAAA 2001:db8::20</code></td></tr>
+                <tr><td><code>CNAME</code></td><td>Creates an alias to another canonical name.</td><td><code>www IN CNAME example.test.</code></td></tr>
+                <tr><td><code>MX</code></td><td>Declares mail exchangers and their priorities.</td><td><code>@ IN MX 10 mail.example.test.</code></td></tr>
+                <tr><td><code>TXT</code></td><td>Stores text used for SPF, DKIM, DMARC, and verification records.</td><td><code>@ IN TXT "v=spf1 mx -all"</code></td></tr>
+                <tr><td><code>SRV</code></td><td>Publishes service location, priority, weight, port, and target.</td><td><code>_sip._tcp IN SRV 10 60 5060 sip.example.test.</code></td></tr>
+                <tr><td><code>CAA</code></td><td>Restricts which certificate authorities may issue certificates.</td><td><code>@ IN CAA 0 issue "letsencrypt.org"</code></td></tr>
+                <tr><td><code>PTR</code></td><td>Maps an address back to a hostname in a reverse zone.</td><td><code>20 IN PTR host.example.test.</code></td></tr>
+                <tr><td><code>DS</code></td><td>Publishes a delegated zone's DNSSEC key digest in the parent zone.</td><td><code>child IN DS 12345 13 2 ...</code></td></tr>
+            </tbody>
+        </table>
+
+        <h2>Address Records</h2>
+        <p>Use <code>A</code> for IPv4 and <code>AAAA</code> for IPv6. Do not place an IPv6 address in an <code>A</code> record or an IPv4 address in an <code>AAAA</code> record.</p>
+        <pre><code>@       IN  A     192.0.2.20
+www     IN  A     192.0.2.21
+@       IN  AAAA  2001:db8::20</code></pre>
+
+        <h2>Aliases and CNAME Restrictions</h2>
+        <p>A <code>CNAME</code> owner name cannot have any other record type at the same name. This means <code>www</code> cannot be both a CNAME and an A record. The zone apex also cannot normally be a CNAME because it already has SOA and NS records.</p>
+        <pre><code>; Valid alias
+www     IN  CNAME  example.test.
+
+; Invalid if www also has A, AAAA, MX, TXT, or any other data</code></pre>
+
+        <h2>Records with Target Names</h2>
+        <p>NS, CNAME, MX, SRV, PTR, and many other records contain DNS names as values. Add a trailing dot when you mean a fully qualified name. Without it, BIND appends the current origin.</p>
+
+        <h2>Records named-checkzone Cannot Fully Judge</h2>
+        <p>The validator can check whether a CAA, DS, SPF TXT, or DMARC TXT record is syntactically valid as DNS data. It does not guarantee that a certificate authority, registrar, mail receiver, or DNSSEC validator will treat the policy as intended. For policy records, combine zone validation with protocol-specific tests.</p>
+
+        <div class="cta-box"><p><strong>Testing new record types?</strong> Validate the zone file before publishing the changes.</p><a href="/" class="btn">Open the Validator</a></div>
+        <div class="ad-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5332513065156036" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
+    </main>
+
+    <footer class="site-footer"><div class="site-footer__inner"><span>&copy; 2024&ndash;2026 checkzone.dev</span><ul class="site-footer__links"><li><a href="/guides/">Guides</a></li><li><a href="/privacy.html">Privacy Policy</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li></ul></div></footer>
+    <script>document.querySelector('.site-nav__toggle').addEventListener('click', function () { document.querySelector('.site-nav__links').classList.toggle('open'); });</script>
+</body>
+
+</html>

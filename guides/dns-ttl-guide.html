@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DNS TTL Guide for BIND Zone Files | checkzone.dev</title>
+    <meta name="description" content="Learn how DNS TTL values work in BIND zone files, how $TTL interacts with record-specific TTLs, and how to plan TTLs before DNS changes." />
+
+    <meta property="og:title" content="DNS TTL Guide for BIND Zone Files" />
+    <meta property="og:description" content="How to set practical TTL values in BIND master files and plan safer DNS changes." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://checkzone.dev/guides/dns-ttl-guide.html" />
+
+    <link rel="canonical" href="https://checkzone.dev/guides/dns-ttl-guide.html" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='12' width='100' height='100' fill='%2364ceaa'/><text x='50' y='72' font-size='60' text-anchor='middle' fill='%231c2023' font-family='sans-serif' font-weight='bold'>Z</text></svg>" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
+    <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QL2F6CRE1Q');</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5332513065156036" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class="site-nav"><a href="/" class="site-nav__brand"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect rx="12" width="100" height="100" fill="currentColor"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#1c2023" font-family="sans-serif" font-weight="bold">Z</text></svg>checkzone.dev</a><button class="site-nav__toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button><ul class="site-nav__links"><li><a href="/">Validator</a></li><li><a href="/guides/" class="active">Guides</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li></ul></nav>
+
+    <main class="page-content">
+        <h1>DNS TTL Guide for BIND Zone Files</h1>
+        <p class="page-subtitle">Use TTLs intentionally before, during, and after DNS changes</p>
+
+        <p>A DNS TTL, or Time To Live, tells recursive resolvers how long they may cache a DNS answer. In a BIND zone file, TTLs affect how quickly clients see record changes after cached answers expire. They do not force existing caches to update immediately.</p>
+
+        <h2>Default TTL with $TTL</h2>
+        <p>The <code>$TTL</code> directive sets the default TTL for records that do not specify their own value:</p>
+        <pre><code>$TTL 3600
+@       IN  A     192.0.2.20
+www     IN  A     192.0.2.21</code></pre>
+        <p>Both records above inherit a TTL of 3600 seconds, or one hour.</p>
+
+        <h2>Record-Specific TTLs</h2>
+        <p>You can override the default TTL for a single record by placing the value before the class:</p>
+        <pre><code>$TTL 3600
+@       IN  A     192.0.2.20
+www 300 IN  A     192.0.2.21</code></pre>
+        <p>The apex A record uses the one-hour default. The <code>www</code> record uses 300 seconds.</p>
+
+        <h2>Planning a Migration</h2>
+        <p>Lower TTLs before a planned change, wait at least the old TTL, make the change, then raise the TTL again after the new records are stable. If a record currently has a TTL of 86400 seconds, lowering it five minutes before a migration will not help clients that already cached the old answer for a full day.</p>
+
+        <table>
+            <thead><tr><th>Use Case</th><th>Typical TTL</th><th>Reason</th></tr></thead>
+            <tbody>
+                <tr><td>Stable website record</td><td><code>3600</code> to <code>14400</code></td><td>Balances cache efficiency and reasonable change speed.</td></tr>
+                <tr><td>Active migration window</td><td><code>300</code></td><td>Allows faster rollback or cutover after caches age out.</td></tr>
+                <tr><td>Very stable NS or MX target</td><td><code>3600</code> to <code>86400</code></td><td>These usually change less often, but avoid extreme values if operations are immature.</td></tr>
+                <tr><td>Testing a new record</td><td><code>60</code> to <code>300</code></td><td>Useful for short-lived experiments, but not ideal as a permanent default.</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Negative Cache TTL</h2>
+        <p>The final SOA field is commonly described as the negative cache TTL. It affects how long resolvers may cache negative answers such as NXDOMAIN, depending on the SOA TTL behavior of the authoritative server and resolver. If you create a record that previously did not exist, some clients may continue seeing the negative answer until that cache expires.</p>
+
+        <h2>What named-checkzone Validates</h2>
+        <p><code>named-checkzone</code> can tell whether TTL values are syntactically valid. It cannot tell whether a TTL is operationally appropriate for your migration plan. Treat TTL choice as part of the deployment process, not just zone file syntax.</p>
+
+        <div class="cta-box"><p><strong>Changed TTLs in a zone file?</strong> Validate the file before loading it into BIND.</p><a href="/" class="btn">Open the Validator</a></div>
+        <div class="ad-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5332513065156036" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
+    </main>
+
+    <footer class="site-footer"><div class="site-footer__inner"><span>&copy; 2024&ndash;2026 checkzone.dev</span><ul class="site-footer__links"><li><a href="/guides/">Guides</a></li><li><a href="/privacy.html">Privacy Policy</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li></ul></div></footer>
+    <script>document.querySelector('.site-nav__toggle').addEventListener('click', function () { document.querySelector('.site-nav__links').classList.toggle('open'); });</script>
+</body>
+
+</html>

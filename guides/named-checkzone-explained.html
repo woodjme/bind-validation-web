@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>named-checkzone Explained | checkzone.dev</title>
+    <meta name="description" content="Learn what named-checkzone checks, how to run it locally, how to read its output, and what it cannot verify about live DNS." />
+
+    <meta property="og:title" content="named-checkzone Explained" />
+    <meta property="og:description" content="How BIND's zone validation utility works and how to interpret its output." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://checkzone.dev/guides/named-checkzone-explained.html" />
+
+    <link rel="canonical" href="https://checkzone.dev/guides/named-checkzone-explained.html" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='12' width='100' height='100' fill='%2364ceaa'/><text x='50' y='72' font-size='60' text-anchor='middle' fill='%231c2023' font-family='sans-serif' font-weight='bold'>Z</text></svg>" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-QL2F6CRE1Q');
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5332513065156036" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class="site-nav">
+        <a href="/" class="site-nav__brand">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect rx="12" width="100" height="100" fill="currentColor"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#1c2023" font-family="sans-serif" font-weight="bold">Z</text></svg>
+            checkzone.dev
+        </a>
+        <button class="site-nav__toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button>
+        <ul class="site-nav__links">
+            <li><a href="/">Validator</a></li>
+            <li><a href="/guides/" class="active">Guides</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/contact.html">Contact</a></li>
+        </ul>
+    </nav>
+
+    <main class="page-content">
+        <h1>named-checkzone Explained</h1>
+        <p class="page-subtitle">What BIND validates before it accepts a zone file</p>
+
+        <p><code>named-checkzone</code> is the BIND utility used to validate DNS master files. It parses a zone file the way BIND would parse it, checks record syntax, and reports whether the zone can be loaded. checkzone.dev uses this style of validation so the browser result matches the checks a BIND operator would normally run on a server.</p>
+
+        <h2>Basic Command</h2>
+        <p>When running locally, the command takes the zone origin first and the zone file path second:</p>
+        <pre><code>named-checkzone example.test /etc/bind/db.example.test</code></pre>
+        <p>The origin must match the zone file. If the file is for <code>example.test</code>, validate it as <code>example.test</code>, not as a subdomain or a different domain.</p>
+
+        <h2>Successful Output</h2>
+        <p>A clean zone usually reports the loaded serial followed by <code>OK</code>:</p>
+        <pre><code>zone example.test/IN: loaded serial 2026051501
+OK</code></pre>
+        <p>The serial shown is the value from the SOA record. If the command exits successfully, BIND considers the file syntactically loadable for that origin.</p>
+
+        <h2>Error Output</h2>
+        <p>When validation fails, BIND usually prints the file name, line number, and a short reason. For example, a CNAME conflict may appear as:</p>
+        <pre><code>example.test:12: www.example.test: CNAME and other data
+zone example.test/IN: loading from master file example.test failed: CNAME and other data
+zone example.test/IN: not loaded due to errors.</code></pre>
+        <p>Start with the first reported line, then continue through later messages. Later errors are sometimes side effects of an earlier syntax problem.</p>
+
+        <h2>What It Checks</h2>
+        <ul>
+            <li>Master file syntax, comments, parentheses, and field order</li>
+            <li>SOA and NS record requirements</li>
+            <li>Record-specific data such as IPv4, IPv6, MX priority, and SRV fields</li>
+            <li>CNAME conflicts with other records at the same owner name</li>
+            <li>Owner names that are outside the zone origin</li>
+            <li>Some integrity checks around in-zone nameserver and mail exchanger targets</li>
+        </ul>
+
+        <h2>What It Cannot Prove</h2>
+        <p><code>named-checkzone</code> does not test live delegation, registrar glue, DNSSEC signing chains, firewall access to nameservers, or whether HTTP, SMTP, SIP, or other services are actually running. Passing validation means the file can be loaded by BIND; it does not mean the public DNS path is fully configured.</p>
+
+        <h2>Installing It Locally</h2>
+        <p>If your zone contains internal hostnames or private addresses, run the check locally rather than pasting the file into a web tool. Package names vary by operating system:</p>
+        <pre><code># Debian or Ubuntu
+sudo apt install bind9-utils
+
+# RHEL, Fedora, or compatible distributions
+sudo dnf install bind-utils
+
+# macOS with Homebrew
+brew install bind</code></pre>
+
+        <div class="cta-box">
+            <p><strong>Need a quick browser check?</strong> Paste the same zone into checkzone.dev and compare the result with local BIND output.</p>
+            <a href="/" class="btn">Open the Validator</a>
+        </div>
+
+        <div class="ad-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5332513065156036" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
+    </main>
+
+    <footer class="site-footer"><div class="site-footer__inner"><span>&copy; 2024&ndash;2026 checkzone.dev</span><ul class="site-footer__links"><li><a href="/guides/">Guides</a></li><li><a href="/privacy.html">Privacy Policy</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li></ul></div></footer>
+    <script>document.querySelector('.site-nav__toggle').addEventListener('click', function () { document.querySelector('.site-nav__links').classList.toggle('open'); });</script>
+</body>
+
+</html>

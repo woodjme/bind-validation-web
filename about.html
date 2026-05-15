@@ -42,8 +42,7 @@
         </button>
         <ul class="site-nav__links">
             <li><a href="/">Validator</a></li>
-            <li><a href="/guides/bind-zone-file-guide.html">Zone File Guide</a></li>
-            <li><a href="/guides/common-bind-errors.html">Common Errors</a></li>
+            <li><a href="/guides/">Guides</a></li>
             <li><a href="/about.html" class="active">About</a></li>
             <li><a href="/contact.html">Contact</a></li>
         </ul>
@@ -82,8 +81,8 @@
         <p>Your zone file content is sent to our validation API solely for the purpose of running the check. We do <strong>not store, log, or retain</strong> any zone file data after the validation is complete. See our <a href="/privacy.html">privacy policy</a> for full details.</p>
         <p>That said, if your zone files contain sensitive internal infrastructure details, consider running <code>named-checkzone</code> locally instead. The tool is available in the <code>bind9-utils</code> package on most Linux distributions.</p>
 
-        <h2>Who Built This</h2>
-        <p>checkzone.dev was built by <a href="https://jamiewood.io" target="_blank" rel="noopener">Jamie Wood</a>, a software engineer who got tired of deploying zone file changes only to find out there was a typo. Rather than keep running <code>named-checkzone</code> manually on a local machine, this tool makes it accessible to anyone with a browser.</p>
+        <h2>Maintenance and Source</h2>
+        <p>checkzone.dev is maintained as an open-source utility for DNS operators who want a browser-based way to run the same zone validation they would run locally with BIND. The source code is available on GitHub for review, bug reports, and contributions.</p>
 
         <div class="cta-box">
             <p><strong>Ready to validate a zone file?</strong></p>
@@ -107,6 +106,7 @@
         <div class="site-footer__inner">
             <span>&copy; 2024&ndash;2026 checkzone.dev</span>
             <ul class="site-footer__links">
+                <li><a href="/guides/">Guides</a></li>
                 <li><a href="/privacy.html">Privacy Policy</a></li>
                 <li><a href="/about.html">About</a></li>
                 <li><a href="/contact.html">Contact</a></li>

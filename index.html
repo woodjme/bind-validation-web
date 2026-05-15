@@ -23,7 +23,6 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="/css/style.css" />
-    <link href="https://fonts.googleapis.com/css?family=Cookie" rel="stylesheet" />
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
@@ -50,8 +49,7 @@
         </button>
         <ul class="site-nav__links">
             <li><a href="/" class="active">Validator</a></li>
-            <li><a href="/guides/bind-zone-file-guide.html">Zone File Guide</a></li>
-            <li><a href="/guides/common-bind-errors.html">Common Errors</a></li>
+            <li><a href="/guides/">Guides</a></li>
             <li><a href="/about.html">About</a></li>
             <li><a href="/contact.html">Contact</a></li>
         </ul>
@@ -84,12 +82,8 @@
                              data-ad-slot="auto"
                              data-ad-format="auto"
                              data-full-width-responsive="true"></ins>
-                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                     </div>
-                    <a class="bmc-button" target="_blank" rel="noopener" href="https://www.buymeacoffee.com/woodjme">
-                        <img src="https://cdn.buymeacoffee.com/buttons/bmc-new-btn-logo.svg" alt="" />
-                        <span>Buy me a coffee</span>
-                    </a>
+                    <!-- Donation CTA paused during AdSense review. -->
                 </div>
             </div>
 
@@ -113,19 +107,57 @@
             </div>
         </div>
 
-        <!-- Mobile Ad (below editor, visible only on small screens) -->
-        <div class="tool-mobile-ad">
-            <div class="ad-container">
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-5332513065156036"
-                     data-ad-slot="auto"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-            </div>
-        </div>
     </div>
+
+    <main class="home-content" aria-labelledby="home-guide-title">
+        <section class="validator-notes">
+            <div class="validator-notes__intro">
+                <div>
+                    <p class="section-kicker">After validation</p>
+                    <h2 id="home-guide-title">Read the result like BIND would</h2>
+                </div>
+                <p>checkzone.dev runs your pasted zone through <code>named-checkzone</code>, the validation utility shipped with BIND9. Treat the result as a pre-flight syntax check before loading a zone file or sending it to another DNS operator.</p>
+            </div>
+
+            <div class="validator-notes__grid">
+                <article class="note-card">
+                    <span class="note-card__label">Checks</span>
+                    <h3>Can BIND load this file?</h3>
+                    <p>Catches malformed SOA records, missing NS records, invalid A or AAAA data, CNAME conflicts, bad MX or SRV fields, TTL syntax issues, and out-of-zone owner names.</p>
+                </article>
+                <article class="note-card">
+                    <span class="note-card__label">Limits</span>
+                    <h3>It is not a live DNS test</h3>
+                    <p>A clean zone can still have broken delegation, missing registrar glue, unreachable nameservers, DNSSEC chain issues, or web and mail services that do not answer.</p>
+                </article>
+                <article class="note-card">
+                    <span class="note-card__label">Workflow</span>
+                    <h3>Validate the complete zone</h3>
+                    <p>Paste the full file with <code>$TTL</code> and SOA records, increment the SOA serial for changes, review warnings, and run <code>named-checkzone</code> locally for private zones.</p>
+                </article>
+            </div>
+
+            <nav class="validator-notes__links" aria-label="DNS and BIND reference links">
+                <a href="/guides/">Browse all guides</a>
+                <a href="/guides/named-checkzone-explained.html">How named-checkzone works</a>
+                <a href="/guides/common-bind-errors.html">Common BIND errors</a>
+                <a href="/guides/bind-zone-file-examples.html">Working zone examples</a>
+            </nav>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer__inner">
+            <span>&copy; 2024&ndash;2026 checkzone.dev</span>
+            <ul class="site-footer__links">
+                <li><a href="/guides/">Guides</a></li>
+                <li><a href="/privacy.html">Privacy Policy</a></li>
+                <li><a href="/about.html">About</a></li>
+                <li><a href="/contact.html">Contact</a></li>
+                <li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li>
+            </ul>
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.2/ace.js"></script>
@@ -163,6 +195,10 @@
             var resultLabel = document.getElementById("result-label");
             var resultDetails = document.getElementById("result-details");
             var apiUrl = new URLSearchParams(window.location.search).get("api") || "https://bind-api.jamiewood.io/validate";
+
+            if (window.matchMedia("(min-width: 769px)").matches) {
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+            }
 
             function normalizeResult(result) {
                 var normalized = result.trim();

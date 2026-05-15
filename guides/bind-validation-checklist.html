@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BIND Zone File Validation Checklist | checkzone.dev</title>
+    <meta name="description" content="A practical checklist for validating BIND zone files before publishing DNS changes, including syntax, SOA serials, NS records, CNAME conflicts, TTLs, and rollback checks." />
+
+    <meta property="og:title" content="BIND Zone File Validation Checklist" />
+    <meta property="og:description" content="Review a BIND zone file before loading it into production DNS." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://checkzone.dev/guides/bind-validation-checklist.html" />
+
+    <link rel="canonical" href="https://checkzone.dev/guides/bind-validation-checklist.html" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='12' width='100' height='100' fill='%2364ceaa'/><text x='50' y='72' font-size='60' text-anchor='middle' fill='%231c2023' font-family='sans-serif' font-weight='bold'>Z</text></svg>" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
+    <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QL2F6CRE1Q');</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5332513065156036" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class="site-nav"><a href="/" class="site-nav__brand"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect rx="12" width="100" height="100" fill="currentColor"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#1c2023" font-family="sans-serif" font-weight="bold">Z</text></svg>checkzone.dev</a><button class="site-nav__toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button><ul class="site-nav__links"><li><a href="/">Validator</a></li><li><a href="/guides/" class="active">Guides</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li></ul></nav>
+
+    <main class="page-content">
+        <h1>BIND Zone File Validation Checklist</h1>
+        <p class="page-subtitle">Review zone files before publishing DNS changes</p>
+
+        <p>Zone file mistakes are often small: one missing trailing dot, one unchanged serial, or one CNAME left beside an old A record. This checklist keeps the review focused before you load the zone into BIND or send it to a DNS provider.</p>
+
+        <h2>Before Editing</h2>
+        <ul>
+            <li>Confirm the exact zone origin, such as <code>example.test</code>, and validate against that origin.</li>
+            <li>Start from the currently published or currently deployed zone file, not a stale copy.</li>
+            <li>Record the current SOA serial so you can verify that the new serial increases.</li>
+            <li>Lower TTLs ahead of planned migrations, then wait for the old TTL to expire before cutover.</li>
+        </ul>
+
+        <h2>Syntax Review</h2>
+        <ul>
+            <li>The file has a <code>$TTL</code> directive or explicit TTLs on every relevant record.</li>
+            <li>The SOA record is present, has the expected fields, and uses balanced parentheses if split across lines.</li>
+            <li>Fully qualified target names end with a trailing dot.</li>
+            <li>TXT values with spaces are quoted.</li>
+            <li>Comments begin with <code>;</code>, not <code>#</code>.</li>
+        </ul>
+
+        <h2>Record Review</h2>
+        <ul>
+            <li>The zone has at least one NS record at the apex; production zones should normally have at least two authoritative nameservers.</li>
+            <li>In-zone NS and MX targets have corresponding A or AAAA records.</li>
+            <li>No owner name has a CNAME alongside A, AAAA, MX, TXT, or other records.</li>
+            <li>The zone apex is not a CNAME.</li>
+            <li>MX records include a numeric priority before the mail exchanger name.</li>
+            <li>SRV records include priority, weight, port, and target in that order.</li>
+            <li>Records belong to the current zone unless they are intentionally delegated or part of a reverse zone.</li>
+        </ul>
+
+        <h2>Operational Review</h2>
+        <ul>
+            <li>The SOA serial has increased from the currently deployed version.</li>
+            <li>TTL values match the planned rollout and rollback window.</li>
+            <li>DNSSEC-related records are coordinated with signing and parent-zone DS updates.</li>
+            <li>Registrar glue is updated if authoritative nameserver addresses changed.</li>
+            <li>Rollback records are known before making a production change.</li>
+        </ul>
+
+        <h2>Validation and Deployment</h2>
+        <ol>
+            <li>Run <code>named-checkzone</code> locally or use the browser validator.</li>
+            <li>Fix the first syntax error reported, then validate again.</li>
+            <li>Review warnings, especially out-of-zone data or missing address records for in-zone targets.</li>
+            <li>Load or publish the zone only after validation is clean enough for your operating policy.</li>
+            <li>After deployment, query authoritative nameservers directly to confirm the expected SOA serial and record answers.</li>
+        </ol>
+
+        <div class="cta-box"><p><strong>Ready for the syntax check?</strong> Paste the complete zone file into the validator.</p><a href="/" class="btn">Open the Validator</a></div>
+        <div class="ad-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5332513065156036" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
+    </main>
+
+    <footer class="site-footer"><div class="site-footer__inner"><span>&copy; 2024&ndash;2026 checkzone.dev</span><ul class="site-footer__links"><li><a href="/guides/">Guides</a></li><li><a href="/privacy.html">Privacy Policy</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li></ul></div></footer>
+    <script>document.querySelector('.site-nav__toggle').addEventListener('click', function () { document.querySelector('.site-nav__links').classList.toggle('open'); });</script>
+</body>
+
+</html>

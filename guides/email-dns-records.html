@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Email DNS Records in BIND Zone Files | checkzone.dev</title>
+    <meta name="description" content="Write MX, SPF, DKIM, DMARC, MTA-STS, and TLS reporting records in BIND zone file syntax with practical examples and validation notes." />
+
+    <meta property="og:title" content="Email DNS Records in BIND Zone Files" />
+    <meta property="og:description" content="Practical BIND examples for MX, SPF, DKIM, DMARC, MTA-STS, and TLS reporting records." />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://checkzone.dev/guides/email-dns-records.html" />
+
+    <link rel="canonical" href="https://checkzone.dev/guides/email-dns-records.html" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect rx='12' width='100' height='100' fill='%2364ceaa'/><text x='50' y='72' font-size='60' text-anchor='middle' fill='%231c2023' font-family='sans-serif' font-weight='bold'>Z</text></svg>" />
+    <link rel="stylesheet" href="/css/style.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QL2F6CRE1Q"></script>
+    <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QL2F6CRE1Q');</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5332513065156036" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class="site-nav"><a href="/" class="site-nav__brand"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect rx="12" width="100" height="100" fill="currentColor"/><text x="50" y="72" font-size="60" text-anchor="middle" fill="#1c2023" font-family="sans-serif" font-weight="bold">Z</text></svg>checkzone.dev</a><button class="site-nav__toggle" aria-label="Toggle navigation"><svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg></button><ul class="site-nav__links"><li><a href="/">Validator</a></li><li><a href="/guides/" class="active">Guides</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li></ul></nav>
+
+    <main class="page-content">
+        <h1>Email DNS Records in BIND Zone Files</h1>
+        <p class="page-subtitle">MX, SPF, DKIM, DMARC, MTA-STS, and TLS reporting records written safely</p>
+
+        <p>Email-related DNS records are ordinary DNS records with protocol-specific meaning. <code>named-checkzone</code> can validate the BIND syntax, but it cannot prove that a mailbox provider will accept your SPF, DKIM, or DMARC policy. Use DNS validation first, then test with email-specific tools.</p>
+
+        <h2>MX Records</h2>
+        <p>MX records tell other mail systems where to deliver mail. Lower preference values are tried first.</p>
+        <pre><code>@       IN  MX  10 mail1.example.test.
+@       IN  MX  20 mail2.example.test.
+mail1   IN  A       192.0.2.30
+mail2   IN  A       192.0.2.31</code></pre>
+        <p>If the mail exchanger name is inside the same zone, include address records for it unless another zone already provides them.</p>
+
+        <h2>SPF Records</h2>
+        <p>SPF is published as a TXT record. A domain should normally publish one SPF TXT record at a given owner name; multiple SPF records at the same name can cause mail receivers to treat SPF as invalid.</p>
+        <pre><code>@       IN  TXT  "v=spf1 mx ip4:192.0.2.0/24 -all"</code></pre>
+        <p>Quote SPF values in BIND. Unquoted TXT data can be parsed as multiple character-strings, which may not be what you intended.</p>
+
+        <h2>DKIM Records</h2>
+        <p>DKIM keys are TXT records under a selector name below <code>_domainkey</code>. Long keys must be split into multiple quoted strings inside one TXT record; DNS clients concatenate those strings.</p>
+        <pre><code>selector1._domainkey IN TXT (
+    "v=DKIM1; k=rsa; "
+    "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A..."
+)</code></pre>
+        <p>The selector name is chosen by your mail system. If your mail provider gives you a selector, use it exactly.</p>
+
+        <h2>DMARC Records</h2>
+        <p>DMARC is published at <code>_dmarc</code>. Start with reporting-only policy if you need visibility before enforcement.</p>
+        <pre><code>_dmarc IN TXT "v=DMARC1; p=none; rua=mailto:dmarc@example.test"</code></pre>
+        <p>Move from <code>p=none</code> to <code>p=quarantine</code> or <code>p=reject</code> only after confirming legitimate mail passes SPF or DKIM alignment.</p>
+
+        <h2>MTA-STS and TLS Reporting</h2>
+        <p>MTA-STS and SMTP TLS reporting also use TXT records. MTA-STS additionally requires an HTTPS policy file at a well-known host, which zone validation cannot check.</p>
+        <pre><code>_mta-sts    IN  TXT  "v=STSv1; id=2026051501"
+_smtp._tls  IN  TXT  "v=TLSRPTv1; rua=mailto:tlsrpt@example.test"</code></pre>
+
+        <h2>Validation Checklist</h2>
+        <ul>
+            <li>MX records include numeric priorities and fully qualified mail exchanger names.</li>
+            <li>In-zone mail exchanger names have A or AAAA records.</li>
+            <li>SPF, DKIM, DMARC, MTA-STS, and TLS reporting TXT values are quoted.</li>
+            <li>Long DKIM keys are split into multiple quoted strings inside one TXT record, not multiple records.</li>
+            <li>DMARC report addresses are real mailboxes or aliases that can receive aggregate reports.</li>
+        </ul>
+
+        <div class="cta-box"><p><strong>Editing mail DNS?</strong> Validate the zone syntax before changing production records.</p><a href="/" class="btn">Open the Validator</a></div>
+        <div class="ad-container"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5332513065156036" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
+    </main>
+
+    <footer class="site-footer"><div class="site-footer__inner"><span>&copy; 2024&ndash;2026 checkzone.dev</span><ul class="site-footer__links"><li><a href="/guides/">Guides</a></li><li><a href="/privacy.html">Privacy Policy</a></li><li><a href="/about.html">About</a></li><li><a href="/contact.html">Contact</a></li><li><a href="https://github.com/woodjme/bind-validation-web" target="_blank" rel="noopener">GitHub</a></li></ul></div></footer>
+    <script>document.querySelector('.site-nav__toggle').addEventListener('click', function () { document.querySelector('.site-nav__links').classList.toggle('open'); });</script>
+</body>
+
+</html>
